@@ -39,6 +39,17 @@ class ErrorSerializer
         // Merge context
         $mergedContext = $scope->merge($localContext);
 
+        // Add exception metadata to context
+        $mergedContext['exception_class'] = get_class($exception);
+
+        // Add enhanced stack frames with code snippets
+        $mergedContext['frames'] = StackTrace::parse($exception);
+
+        // Support queries field (if provided by framework)
+        if (!isset($mergedContext['queries'])) {
+            $mergedContext['queries'] = [];
+        }
+
         // Add breadcrumbs if any
         if (!empty($breadcrumbs)) {
             $mergedContext['breadcrumbs'] = $breadcrumbs;
