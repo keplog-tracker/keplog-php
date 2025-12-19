@@ -79,8 +79,9 @@ class ErrorSerializerTest extends TestCase
             $breadcrumbs->getAll()
         );
 
-        $this->assertEquals(123, $event['context']['user_id']);
-        $this->assertEquals('production', $event['context']['tags']['env']);
+        // User-defined context goes to extra_context
+        $this->assertEquals(123, $event['extra_context']['user_id']);
+        $this->assertEquals('production', $event['extra_context']['tags']['env']);
     }
 
     public function testSerializeWithLocalContext(): void
@@ -102,8 +103,9 @@ class ErrorSerializerTest extends TestCase
             $localContext
         );
 
-        $this->assertEquals('abc123', $event['context']['request_id']);
-        $this->assertEquals('192.168.1.1', $event['context']['ip']);
+        // User-defined context goes to extra_context
+        $this->assertEquals('abc123', $event['extra_context']['request_id']);
+        $this->assertEquals('192.168.1.1', $event['extra_context']['ip']);
     }
 
     public function testSerializeLocalContextOverridesScope(): void
@@ -126,7 +128,8 @@ class ErrorSerializerTest extends TestCase
             $localContext
         );
 
-        $this->assertEquals('local_value', $event['context']['key']);
+        // User-defined context goes to extra_context
+        $this->assertEquals('local_value', $event['extra_context']['key']);
     }
 
     public function testSerializeWithBreadcrumbs(): void
@@ -261,8 +264,9 @@ class ErrorSerializerTest extends TestCase
             ['request_id' => 'xyz789']
         );
 
-        $this->assertEquals('test-app', $event['context']['app']);
-        $this->assertEquals('xyz789', $event['context']['request_id']);
+        // User-defined context goes to extra_context
+        $this->assertEquals('test-app', $event['extra_context']['app']);
+        $this->assertEquals('xyz789', $event['extra_context']['request_id']);
     }
 
     public function testSerializeMessageWithBreadcrumbs(): void
@@ -304,6 +308,7 @@ class ErrorSerializerTest extends TestCase
         $this->assertEquals('staging', $event['environment']);
         $this->assertEquals('api-server-02', $event['server_name']);
         $this->assertEquals('v2.0.0', $event['release']);
-        $this->assertEquals('value', $event['context']['key']);
+        // User-defined context goes to extra_context
+        $this->assertEquals('value', $event['extra_context']['key']);
     }
 }

@@ -1,6 +1,6 @@
 # Keplog PHP SDK
 
-[![Tests](https://img.shields.io/badge/tests-81%20passed-success)](https://github.com/keplog/php-sdk)
+[![Tests](https://img.shields.io/badge/tests-94%20passed-success)](https://github.com/keplog/php-sdk)
 [![PHP Version](https://img.shields.io/badge/php-%3E%3D8.1-blue)](https://www.php.net/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
@@ -9,7 +9,9 @@ Official PHP SDK for [Keplog](https://keplog.io) - Real-time error tracking and 
 ## Features
 
 - ✅ **Automatic Error Capture** - Capture exceptions automatically
-- ✅ **Laravel Integration** - First-class support for Laravel framework
+- ✅ **Enhanced Stack Frames** - Code snippets with vendor/app classification ([Read more](ENHANCED_STACK_FRAMES.md))
+- ✅ **Context Separation** - Automatic separation of system vs user-defined context ([Read more](docs/RESERVED_CONTEXT_KEYS.md))
+- ✅ **Laravel 11 & 12 Support** - First-class support with bootstrap/app.php ([Read more](docs/LARAVEL_12_INTEGRATION.md))
 - ✅ **Request Context** - Automatically capture HTTP request details
 - ✅ **User Tracking** - Track authenticated users with errors
 - ✅ **Breadcrumbs** - Track user actions leading up to errors
@@ -18,7 +20,7 @@ Official PHP SDK for [Keplog](https://keplog.io) - Real-time error tracking and 
 - ✅ **beforeSend Hooks** - Filter or modify events before sending
 - ✅ **Zero Dependencies** - Only requires Guzzle HTTP client
 - ✅ **Silent Failures** - SDK errors never crash your application
-- ✅ **Full Test Coverage** - 81 comprehensive tests
+- ✅ **Full Test Coverage** - 94 comprehensive tests
 
 ## Requirements
 
@@ -60,7 +62,13 @@ try {
 
 ### Laravel Integration
 
-#### 1. Register Service Provider
+> **📖 For complete Laravel 12 integration guide, see [Laravel 12 Integration Guide](docs/LARAVEL_12_INTEGRATION.md)**
+
+#### Laravel 12+ (Recommended)
+
+Laravel 12 uses `bootstrap/app.php` for configuration. This is the recommended approach:
+
+##### 1. Register Service Provider
 
 Add to `app/Providers/AppServiceProvider.php`:
 
@@ -78,7 +86,7 @@ public function register(): void
 }
 ```
 
-#### 2. Configure Environment
+##### 2. Configure Environment
 
 Add to `.env`:
 
@@ -88,9 +96,42 @@ KEPLOG_BASE_URL=http://localhost:8080
 KEPLOG_ENABLED=true
 ```
 
-#### 3. Set Up Exception Handler
+##### 3. Set Up Exception Handler
 
-Update `app/Exceptions/Handler.php`:
+Update `bootstrap/app.php`:
+
+```php
+use Illuminate\Foundation\Application;
+use Illuminate\Foundation\Configuration\Exceptions;
+use Illuminate\Foundation\Configuration\Middleware;
+use Keplog\Context\RequestContext;
+use Keplog\Context\UserContext;
+
+return Application::configure(basePath: dirname(__DIR__))
+    ->withRouting(
+        web: __DIR__ . '/../routes/web.php',
+        commands: __DIR__ . '/../routes/console.php',
+        health: '/up',
+    )
+    ->withMiddleware(function (Middleware $middleware): void {
+        //
+    })
+    ->withExceptions(function (Exceptions $exceptions): void {
+        // Keplog integration - automatically captures all exceptions
+        $exceptions->report(function (Throwable $e) {
+            if (app()->bound('keplog')) {
+                app('keplog')->captureException($e, [
+                    'request' => RequestContext::capture(request()),
+                    'user' => UserContext::capture(),
+                ]);
+            }
+        });
+    })->create();
+```
+
+#### Laravel 11 and Below (Legacy)
+
+For older Laravel versions, use `app/Exceptions/Handler.php`:
 
 ```php
 use Keplog\Context\RequestContext;
@@ -109,7 +150,7 @@ public function register(): void
 }
 ```
 
-#### 4. Track Failed Queue Jobs (Optional)
+#### Optional: Track Failed Queue Jobs
 
 Add to `app/Providers/AppServiceProvider.php`:
 
@@ -614,6 +655,26 @@ $this->app->singleton('keplog', function () {
     return Mockery::mock(KeplogClient::class);
 });
 ```
+
+## Documentation
+
+### Guides
+
+- **[Laravel 12 Integration](docs/LARAVEL_12_INTEGRATION.md)** - Complete Laravel 12 setup guide
+- **[Enhanced Stack Frames](ENHANCED_STACK_FRAMES.md)** - Code snippets and frame classification
+- **[Reserved Context Keys](docs/RESERVED_CONTEXT_KEYS.md)** - Understanding context separation
+
+### Key Features
+
+- **Automatic Exception Capture** - Catch all exceptions automatically
+- **Enhanced Stack Traces** - Code snippets with vendor/app classification
+- **Context Separation** - System context vs. user-defined extra context
+- **Laravel Integration** - First-class support for Laravel 11 & 12
+- **Database Query Tracking** - Capture queries before errors (optional)
+- **Request & User Context** - Automatic HTTP and auth data capture
+- **Queue Job Tracking** - Monitor failed background jobs
+- **Breadcrumbs** - Track user actions leading to errors
+- **Customizable** - Tags, filters, and hooks
 
 ## License
 

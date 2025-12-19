@@ -11,6 +11,18 @@ use Keplog\Utils\StackTrace;
 class ErrorSerializer
 {
     /**
+     * Reserved context keys (SDK-managed)
+     */
+    private const RESERVED_CONTEXT_KEYS = [
+        'exception_class',
+        'frames',
+        'queries',
+        'request',
+        'user',
+        'breadcrumbs',
+    ];
+
+    /**
      * Serialize an exception into an ErrorEvent
      *
      * @param Throwable $exception
@@ -36,23 +48,33 @@ class ErrorSerializer
         $message = $exception->getMessage() ?: 'Unknown error';
         $stackTrace = StackTrace::extract($exception);
 
-        // Merge context
+        // Merge context from scope and local
         $mergedContext = $scope->merge($localContext);
 
-        // Add exception metadata to context
-        $mergedContext['exception_class'] = get_class($exception);
+        // Separate system context and user-defined extra context
+        $systemContext = [];
+        $extraContext = [];
 
-        // Add enhanced stack frames with code snippets
-        $mergedContext['frames'] = StackTrace::parse($exception);
+        foreach ($mergedContext as $key => $value) {
+            if (in_array($key, self::RESERVED_CONTEXT_KEYS)) {
+                $systemContext[$key] = $value;
+            } else {
+                $extraContext[$key] = $value;
+            }
+        }
 
-        // Support queries field (if provided by framework)
-        if (!isset($mergedContext['queries'])) {
-            $mergedContext['queries'] = [];
+        // Add SDK-generated context
+        $systemContext['exception_class'] = get_class($exception);
+        $systemContext['frames'] = StackTrace::parse($exception);
+
+        // Ensure queries field exists (if not provided by framework)
+        if (!isset($systemContext['queries'])) {
+            $systemContext['queries'] = [];
         }
 
         // Add breadcrumbs if any
         if (!empty($breadcrumbs)) {
-            $mergedContext['breadcrumbs'] = $breadcrumbs;
+            $systemContext['breadcrumbs'] = $breadcrumbs;
         }
 
         // Create event
@@ -60,9 +82,14 @@ class ErrorSerializer
             'message' => $message,
             'level' => $level,
             'stack_trace' => $stackTrace,
-            'context' => $mergedContext,
+            'context' => $systemContext,
             'timestamp' => gmdate('Y-m-d\TH:i:s\Z'),
         ];
+
+        // Add extra_context if there are user-defined fields
+        if (!empty($extraContext)) {
+            $event['extra_context'] = $extraContext;
+        }
 
         // Add optional fields
         if ($environment !== null) {
@@ -103,21 +130,38 @@ class ErrorSerializer
         ?string $serverName = null,
         ?string $release = null
     ): array {
-        // Merge context
+        // Merge context from scope and local
         $mergedContext = $scope->merge($localContext);
+
+        // Separate system context and user-defined extra context
+        $systemContext = [];
+        $extraContext = [];
+
+        foreach ($mergedContext as $key => $value) {
+            if (in_array($key, self::RESERVED_CONTEXT_KEYS)) {
+                $systemContext[$key] = $value;
+            } else {
+                $extraContext[$key] = $value;
+            }
+        }
 
         // Add breadcrumbs if any
         if (!empty($breadcrumbs)) {
-            $mergedContext['breadcrumbs'] = $breadcrumbs;
+            $systemContext['breadcrumbs'] = $breadcrumbs;
         }
 
         // Create event (no stack trace for messages)
         $event = [
             'message' => $message,
             'level' => $level,
-            'context' => $mergedContext,
+            'context' => $systemContext,
             'timestamp' => gmdate('Y-m-d\TH:i:s\Z'),
         ];
+
+        // Add extra_context if there are user-defined fields
+        if (!empty($extraContext)) {
+            $event['extra_context'] = $extraContext;
+        }
 
         // Add optional fields
         if ($environment !== null) {

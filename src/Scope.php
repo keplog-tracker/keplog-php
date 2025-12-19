@@ -7,6 +7,18 @@ namespace Keplog;
  */
 class Scope
 {
+    /**
+     * Reserved context keys that are managed by the SDK
+     * Users cannot set these keys manually
+     */
+    private const RESERVED_KEYS = [
+        'exception_class',
+        'frames',
+        'queries',
+        'request',
+        'breadcrumbs',
+    ];
+
     /** @var array<string, mixed> */
     private array $context = [];
 
@@ -21,9 +33,17 @@ class Scope
      * @param string $key
      * @param mixed $value
      * @return void
+     * @throws \InvalidArgumentException If key is reserved
      */
     public function setContext(string $key, mixed $value): void
     {
+        if (in_array($key, self::RESERVED_KEYS, true)) {
+            throw new \InvalidArgumentException(
+                "Cannot set reserved context key '{$key}'. Reserved keys are: " .
+                implode(', ', self::RESERVED_KEYS)
+            );
+        }
+
         $this->context[$key] = $value;
     }
 
@@ -108,9 +128,20 @@ class Scope
      *
      * @param array $localContext
      * @return array<string, mixed>
+     * @throws \InvalidArgumentException If local context contains reserved keys (except 'user')
      */
     public function merge(array $localContext = []): array
     {
+        // Validate local context doesn't contain reserved keys (except allowed ones)
+        $allowedReservedKeys = ['user', 'request', 'queries']; // These can be passed in captureException
+        foreach (array_keys($localContext) as $key) {
+            if (in_array($key, self::RESERVED_KEYS, true) && !in_array($key, $allowedReservedKeys, true)) {
+                throw new \InvalidArgumentException(
+                    "Cannot set reserved context key '{$key}'. Use SDK methods to set this field."
+                );
+            }
+        }
+
         $merged = array_merge($this->context, $localContext);
 
         // Add tags if they exist
@@ -130,5 +161,15 @@ class Scope
         }
 
         return $merged;
+    }
+
+    /**
+     * Get list of reserved context keys
+     *
+     * @return array
+     */
+    public static function getReservedKeys(): array
+    {
+        return self::RESERVED_KEYS;
     }
 }

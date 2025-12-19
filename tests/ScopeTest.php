@@ -198,4 +198,126 @@ class ScopeTest extends TestCase
 
         $this->assertArrayNotHasKey('user', $merged);
     }
+
+    public function testSetContextThrowsExceptionForReservedKey(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage("Cannot set reserved context key 'exception_class'");
+
+        $this->scope->setContext('exception_class', 'SomeException');
+    }
+
+    public function testSetContextThrowsExceptionForFramesKey(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage("Cannot set reserved context key 'frames'");
+
+        $this->scope->setContext('frames', []);
+    }
+
+    public function testSetContextThrowsExceptionForQueriesKey(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage("Cannot set reserved context key 'queries'");
+
+        $this->scope->setContext('queries', []);
+    }
+
+    public function testSetContextThrowsExceptionForRequestKey(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage("Cannot set reserved context key 'request'");
+
+        $this->scope->setContext('request', []);
+    }
+
+    public function testSetContextThrowsExceptionForBreadcrumbsKey(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage("Cannot set reserved context key 'breadcrumbs'");
+
+        $this->scope->setContext('breadcrumbs', []);
+    }
+
+    public function testSetContextAllowsNonReservedKeys(): void
+    {
+        // These should work fine
+        $this->scope->setContext('order_id', 123);
+        $this->scope->setContext('custom_data', ['foo' => 'bar']);
+
+        $context = $this->scope->getContext();
+        $this->assertEquals(123, $context['order_id']);
+        $this->assertEquals(['foo' => 'bar'], $context['custom_data']);
+    }
+
+    public function testMergeThrowsExceptionForReservedKeyInLocalContext(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage("Cannot set reserved context key 'exception_class'");
+
+        $this->scope->merge([
+            'exception_class' => 'SomeException',
+        ]);
+    }
+
+    public function testMergeThrowsExceptionForFramesKeyInLocalContext(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage("Cannot set reserved context key 'frames'");
+
+        $this->scope->merge([
+            'frames' => [],
+        ]);
+    }
+
+    public function testMergeThrowsExceptionForBreadcrumbsKeyInLocalContext(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage("Cannot set reserved context key 'breadcrumbs'");
+
+        $this->scope->merge([
+            'breadcrumbs' => [],
+        ]);
+    }
+
+    public function testMergeAllowsRequestKeyInLocalContext(): void
+    {
+        // 'request' is allowed to be passed in captureException
+        $merged = $this->scope->merge([
+            'request' => ['url' => 'https://example.com'],
+        ]);
+
+        $this->assertEquals(['url' => 'https://example.com'], $merged['request']);
+    }
+
+    public function testMergeAllowsQueriesKeyInLocalContext(): void
+    {
+        // 'queries' is allowed to be passed in captureException
+        $merged = $this->scope->merge([
+            'queries' => [['sql' => 'SELECT *']],
+        ]);
+
+        $this->assertEquals([['sql' => 'SELECT *']], $merged['queries']);
+    }
+
+    public function testMergeAllowsUserKeyInLocalContext(): void
+    {
+        // 'user' is allowed to be passed in captureException
+        $merged = $this->scope->merge([
+            'user' => ['id' => 123],
+        ]);
+
+        $this->assertEquals(['id' => 123], $merged['user']);
+    }
+
+    public function testGetReservedKeys(): void
+    {
+        $reserved = Scope::getReservedKeys();
+
+        $this->assertContains('exception_class', $reserved);
+        $this->assertContains('frames', $reserved);
+        $this->assertContains('queries', $reserved);
+        $this->assertContains('request', $reserved);
+        $this->assertContains('breadcrumbs', $reserved);
+    }
 }
