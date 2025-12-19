@@ -1,7 +1,7 @@
 # Keplog PHP SDK
 
 [![Tests](https://img.shields.io/badge/tests-81%20passed-success)](https://github.com/keplog/php-sdk)
-[![PHP Version](https://img.shields.io/badge/php-%3E%3D8.0-blue)](https://www.php.net/)
+[![PHP Version](https://img.shields.io/badge/php-%3E%3D8.1-blue)](https://www.php.net/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 Official PHP SDK for [Keplog](https://keplog.io) - Real-time error tracking and monitoring for PHP applications.
@@ -22,7 +22,7 @@ Official PHP SDK for [Keplog](https://keplog.io) - Real-time error tracking and 
 
 ## Requirements
 
-- PHP 8.0 or higher
+- PHP 8.1 or higher
 - Composer
 - Guzzle HTTP Client 7.x
 
