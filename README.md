@@ -4,7 +4,7 @@
 [![PHP Version](https://img.shields.io/badge/php-%3E%3D8.0-blue)](https://www.php.net/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-Official PHP SDK for [Keplog](https://keplog.com) - Real-time error tracking and monitoring for PHP applications.
+Official PHP SDK for [Keplog](https://keplog.io) - Real-time error tracking and monitoring for PHP applications.
 
 ## Features
 
@@ -621,9 +621,9 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## Support
 
-- **Documentation:** [https://docs.keplog.com](https://docs.keplog.com)
+- **Documentation:** [https://docs.keplog.io](https://docs.keplog.io)
 - **Issues:** [GitHub Issues](https://github.com/keplog/php-sdk/issues)
-- **Email:** support@keplog.com
+- **Email:** support@keplog.io
 
 ## Contributing
 
