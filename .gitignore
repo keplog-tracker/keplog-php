@@ -1,0 +1,36 @@
+# Composer
+/vendor/
+composer.phar
+
+# PHPUnit
+.phpunit.cache/
+.phpunit.result.cache
+coverage/
+coverage.xml
+
+# Test files
+test-api.php
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+
+# Build artifacts
+/build/
+/dist/
