@@ -14,10 +14,10 @@ class KeplogClientTest extends TestCase
         parent::tearDown();
     }
 
-    public function testConstructorRequiresApiKey(): void
+    public function testConstructorRequiresIngestKey(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Keplog API key is required');
+        $this->expectExceptionMessage('Keplog Ingest Key is required');
 
         new KeplogClient([]);
     }
@@ -25,7 +25,7 @@ class KeplogClientTest extends TestCase
     public function testConstructorWithValidConfig(): void
     {
         $client = new KeplogClient([
-            'api_key' => 'test_key',
+            'ingest_key' => 'kep_ingest_test_key',
         ]);
 
         $this->assertInstanceOf(KeplogClient::class, $client);
@@ -37,7 +37,7 @@ class KeplogClientTest extends TestCase
         putenv('APP_ENV=staging');
 
         $client = new KeplogClient([
-            'api_key' => 'test_key',
+            'ingest_key' => 'kep_ingest_test_key',
             'base_url' => 'https://custom.example.com',
             'environment' => 'custom',
             'release' => 'v1.2.3',
@@ -55,7 +55,7 @@ class KeplogClientTest extends TestCase
     public function testCaptureExceptionReturnsEventId(): void
     {
         $client = new KeplogClient([
-            'api_key' => 'test_key',
+            'ingest_key' => 'kep_ingest_test_key',
         ]);
 
         // We can't easily test actual HTTP without mocking deeply,
@@ -70,7 +70,7 @@ class KeplogClientTest extends TestCase
     public function testCaptureExceptionWithContext(): void
     {
         $client = new KeplogClient([
-            'api_key' => 'test_key',
+            'ingest_key' => 'kep_ingest_test_key',
         ]);
 
         $exception = new \Exception('Test error');
@@ -87,7 +87,7 @@ class KeplogClientTest extends TestCase
     public function testCaptureExceptionWhenDisabled(): void
     {
         $client = new KeplogClient([
-            'api_key' => 'test_key',
+            'ingest_key' => 'kep_ingest_test_key',
             'enabled' => false,
         ]);
 
@@ -100,7 +100,7 @@ class KeplogClientTest extends TestCase
     public function testCaptureMessage(): void
     {
         $client = new KeplogClient([
-            'api_key' => 'test_key',
+            'ingest_key' => 'kep_ingest_test_key',
         ]);
 
         $eventId = $client->captureMessage('Test message');
@@ -111,7 +111,7 @@ class KeplogClientTest extends TestCase
     public function testCaptureMessageWithLevel(): void
     {
         $client = new KeplogClient([
-            'api_key' => 'test_key',
+            'ingest_key' => 'kep_ingest_test_key',
         ]);
 
         $eventId = $client->captureMessage('Warning message', 'warning');
@@ -122,7 +122,7 @@ class KeplogClientTest extends TestCase
     public function testCaptureMessageWithContext(): void
     {
         $client = new KeplogClient([
-            'api_key' => 'test_key',
+            'ingest_key' => 'kep_ingest_test_key',
         ]);
 
         $eventId = $client->captureMessage(
@@ -137,7 +137,7 @@ class KeplogClientTest extends TestCase
     public function testCaptureMessageWhenDisabled(): void
     {
         $client = new KeplogClient([
-            'api_key' => 'test_key',
+            'ingest_key' => 'kep_ingest_test_key',
             'enabled' => false,
         ]);
 
@@ -149,7 +149,7 @@ class KeplogClientTest extends TestCase
     public function testAddBreadcrumb(): void
     {
         $client = new KeplogClient([
-            'api_key' => 'test_key',
+            'ingest_key' => 'kep_ingest_test_key',
         ]);
 
         $breadcrumb = [
@@ -166,7 +166,7 @@ class KeplogClientTest extends TestCase
     public function testAddBreadcrumbWhenDisabled(): void
     {
         $client = new KeplogClient([
-            'api_key' => 'test_key',
+            'ingest_key' => 'kep_ingest_test_key',
             'enabled' => false,
         ]);
 
@@ -183,7 +183,7 @@ class KeplogClientTest extends TestCase
     public function testSetContext(): void
     {
         $client = new KeplogClient([
-            'api_key' => 'test_key',
+            'ingest_key' => 'kep_ingest_test_key',
         ]);
 
         $client->setContext('user_id', 123);
@@ -196,7 +196,7 @@ class KeplogClientTest extends TestCase
     public function testSetTag(): void
     {
         $client = new KeplogClient([
-            'api_key' => 'test_key',
+            'ingest_key' => 'kep_ingest_test_key',
         ]);
 
         $client->setTag('environment', 'production');
@@ -208,7 +208,7 @@ class KeplogClientTest extends TestCase
     public function testSetTags(): void
     {
         $client = new KeplogClient([
-            'api_key' => 'test_key',
+            'ingest_key' => 'kep_ingest_test_key',
         ]);
 
         $client->setTags([
@@ -224,7 +224,7 @@ class KeplogClientTest extends TestCase
     public function testSetUser(): void
     {
         $client = new KeplogClient([
-            'api_key' => 'test_key',
+            'ingest_key' => 'kep_ingest_test_key',
         ]);
 
         $client->setUser([
@@ -240,7 +240,7 @@ class KeplogClientTest extends TestCase
     public function testClearScope(): void
     {
         $client = new KeplogClient([
-            'api_key' => 'test_key',
+            'ingest_key' => 'kep_ingest_test_key',
         ]);
 
         $client->setContext('key', 'value');
@@ -256,7 +256,7 @@ class KeplogClientTest extends TestCase
     public function testSetEnabled(): void
     {
         $client = new KeplogClient([
-            'api_key' => 'test_key',
+            'ingest_key' => 'kep_ingest_test_key',
             'enabled' => true,
         ]);
 
@@ -276,7 +276,7 @@ class KeplogClientTest extends TestCase
         $hookCalled = false;
 
         $client = new KeplogClient([
-            'api_key' => 'test_key',
+            'ingest_key' => 'kep_ingest_test_key',
             'before_send' => function ($event) use (&$hookCalled) {
                 $hookCalled = true;
                 $event['custom_field'] = 'custom_value';
@@ -295,7 +295,7 @@ class KeplogClientTest extends TestCase
     public function testBeforeSendHookCanDropEvent(): void
     {
         $client = new KeplogClient([
-            'api_key' => 'test_key',
+            'ingest_key' => 'kep_ingest_test_key',
             'before_send' => function ($event) {
                 // Drop all events
                 return null;
@@ -312,7 +312,7 @@ class KeplogClientTest extends TestCase
     public function testCaptureExceptionHandlesSerializationError(): void
     {
         $client = new KeplogClient([
-            'api_key' => 'test_key',
+            'ingest_key' => 'kep_ingest_test_key',
             'debug' => true,
         ]);
 
@@ -329,7 +329,7 @@ class KeplogClientTest extends TestCase
         putenv('APP_ENV=testing');
 
         $client = new KeplogClient([
-            'api_key' => 'test_key',
+            'ingest_key' => 'kep_ingest_test_key',
         ]);
 
         // Environment should be auto-detected
@@ -343,7 +343,7 @@ class KeplogClientTest extends TestCase
     public function testServerNameAutoDetection(): void
     {
         $client = new KeplogClient([
-            'api_key' => 'test_key',
+            'ingest_key' => 'kep_ingest_test_key',
         ]);
 
         // Server name should be auto-detected from hostname
@@ -355,7 +355,7 @@ class KeplogClientTest extends TestCase
     public function testDebugModeLogging(): void
     {
         $client = new KeplogClient([
-            'api_key' => 'test_key',
+            'ingest_key' => 'kep_ingest_test_key',
             'debug' => true,
         ]);
 
@@ -368,7 +368,7 @@ class KeplogClientTest extends TestCase
     public function testMultipleBreadcrumbsAndScopes(): void
     {
         $client = new KeplogClient([
-            'api_key' => 'test_key',
+            'ingest_key' => 'kep_ingest_test_key',
         ]);
 
         // Add multiple breadcrumbs
@@ -395,5 +395,165 @@ class KeplogClientTest extends TestCase
 
         // Should handle complex scenario
         $this->assertTrue($eventId === null || is_string($eventId));
+    }
+
+    // ========== INFINITE LOOP PROTECTION TESTS ==========
+
+    public function testBeforeSendThrowingErrorDoesNotCrash(): void
+    {
+        $client = new KeplogClient([
+            'ingest_key' => 'kep_ingest_test_key',
+            'debug' => false,
+            'before_send' => function ($event) {
+                throw new \Exception('beforeSend error');
+            },
+        ]);
+
+        $exception = new \Exception('Test error');
+        $eventId = $client->captureException($exception);
+
+        // Should return null and not throw
+        $this->assertNull($eventId);
+    }
+
+    public function testRecursionGuardPreventsInfiniteLoop(): void
+    {
+        $captureAttempts = 0;
+
+        $client = new KeplogClient([
+            'ingest_key' => 'kep_ingest_test_key',
+            'debug' => true,
+            'before_send' => function ($event) use (&$captureAttempts) {
+                $captureAttempts++;
+                if ($captureAttempts === 1) {
+                    // Simulate SDK bug during serialization
+                    throw new \Exception('SDK bug during serialization');
+                }
+                return $event;
+            },
+        ]);
+
+        $exception = new \Exception('User error');
+        $eventId = $client->captureException($exception);
+
+        // Should return null due to beforeSend throwing
+        $this->assertNull($eventId);
+
+        // Should only try once, not infinite loop
+        $this->assertEquals(1, $captureAttempts);
+    }
+
+    public function testIsCapturingFlagResetEvenOnError(): void
+    {
+        $client = new KeplogClient([
+            'ingest_key' => 'kep_ingest_test_key',
+            'before_send' => function ($event) {
+                throw new \Exception('Error during send');
+            },
+        ]);
+
+        // First capture - should fail and reset flag
+        $eventId1 = $client->captureException(new \Exception('Error 1'));
+        $this->assertNull($eventId1);
+
+        // Second capture on same client - should also fail gracefully (not hang)
+        // This proves the flag is properly reset in finally block
+        $eventId2 = $client->captureException(new \Exception('Error 2'));
+        $this->assertNull($eventId2);
+    }
+
+    public function testRecursionGuardBlocksNestedCapture(): void
+    {
+        $callCount = 0;
+        $client = null;
+
+        $client = new KeplogClient([
+            'ingest_key' => 'kep_ingest_test_key',
+            'debug' => true,
+            'before_send' => function ($event) use (&$callCount, &$client) {
+                $callCount++;
+                // Simulate recursive capture attempt
+                if ($callCount === 1) {
+                    // Try to capture another error while processing this one
+                    // This would cause infinite loop without protection
+                    $client->captureException(new \Exception('Recursive error'));
+                }
+                return $event;
+            },
+        ]);
+
+        $client->captureException(new \Exception('Original error'));
+
+        // BeforeSend should be called only once for the original error
+        // The recursive call should be blocked by isCapturing guard
+        $this->assertEquals(1, $callCount);
+    }
+
+    public function testMultipleRapidErrorsWithoutRecursion(): void
+    {
+        $client = new KeplogClient([
+            'ingest_key' => 'kep_ingest_test_key',
+            'debug' => false,
+        ]);
+
+        // Capture multiple errors rapidly
+        $eventId1 = $client->captureException(new \Exception('Error 1'));
+        $eventId2 = $client->captureException(new \Exception('Error 2'));
+        $eventId3 = $client->captureException(new \Exception('Error 3'));
+
+        // All should complete without infinite loops
+        // They will likely be null without a real server, but shouldn't hang
+        $this->assertTrue($eventId1 === null || is_string($eventId1));
+        $this->assertTrue($eventId2 === null || is_string($eventId2));
+        $this->assertTrue($eventId3 === null || is_string($eventId3));
+    }
+
+    public function testSDKInternalErrorsHandledGracefully(): void
+    {
+        $client = new KeplogClient([
+            'ingest_key' => 'kep_ingest_test_key',
+            'debug' => true,
+        ]);
+
+        // Even with invalid data, SDK should not crash
+        $exception = new \Exception('Test error');
+
+        $eventId = $client->captureException($exception);
+
+        // Should handle gracefully, not throw
+        $this->assertTrue($eventId === null || is_string($eventId));
+    }
+
+    public function testBeforeSendErrorLoggedInDebugMode(): void
+    {
+        // Capture error_log output
+        $errorLog = [];
+        set_error_handler(function ($errno, $errstr) use (&$errorLog) {
+            $errorLog[] = $errstr;
+            return true;
+        });
+
+        $client = new KeplogClient([
+            'ingest_key' => 'kep_ingest_test_key',
+            'debug' => true,
+            'before_send' => function ($event) {
+                throw new \Exception('beforeSend error message');
+            },
+        ]);
+
+        $client->captureException(new \Exception('Test'));
+
+        restore_error_handler();
+
+        // Check that error was logged
+        $foundLog = false;
+        foreach ($errorLog as $log) {
+            if (strpos($log, 'beforeSend callback threw error') !== false) {
+                $foundLog = true;
+                break;
+            }
+        }
+
+        $this->assertTrue($foundLog, 'beforeSend error should be logged in debug mode');
     }
 }

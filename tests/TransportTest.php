@@ -22,7 +22,7 @@ class TransportTest extends TestCase
     {
         $transport = new Transport([
             'base_url' => 'http://localhost:8080',
-            'api_key' => 'test_api_key',
+            'ingest_key' => 'test_ingest_key',
             'timeout' => 5,
             'debug' => $debug,
         ]);
@@ -46,7 +46,7 @@ class TransportTest extends TestCase
                 'http://localhost:8080/api/ingest/v1/events',
                 Mockery::on(function ($options) {
                     return $options['headers']['Content-Type'] === 'application/json'
-                        && $options['headers']['X-API-Key'] === 'test_api_key'
+                        && $options['headers']['X-Ingest-Key'] === 'test_ingest_key'
                         && isset($options['json']);
                 })
             )

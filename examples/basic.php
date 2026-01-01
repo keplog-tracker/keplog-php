@@ -12,7 +12,7 @@ use Keplog\KeplogClient;
 
 // Initialize the Keplog client
 $keplog = new KeplogClient([
-    'api_key' => 'kep_your-api-key-here',  // Replace with your actual API key
+    'ingest_key' => 'kep_ingest_your-ingest-key',  // Replace with your actual API key
     'base_url' => 'http://localhost:8080',  // Your Keplog API endpoint
     'environment' => 'production',
     'release' => 'v1.0.0',
@@ -112,7 +112,7 @@ $keplog->captureMessage('Database connection slow', 'warning', [
 // Example 8: Using beforeSend hook
 echo "\nExample 8: Using beforeSend hook\n";
 $keplogWithHook = new KeplogClient([
-    'api_key' => 'kep_your-api-key-here',
+    'ingest_key' => 'kep_ingest_your-ingest-key',
     'base_url' => 'http://localhost:8080',
     'before_send' => function ($event) {
         // Filter out errors in development

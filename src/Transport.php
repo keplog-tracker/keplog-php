@@ -11,7 +11,7 @@ use GuzzleHttp\Exception\GuzzleException;
 class Transport
 {
     private string $baseUrl;
-    private string $apiKey;
+    private string $ingestKey;
     private int $timeout;
     private bool $debug;
     private Client $client;
@@ -19,7 +19,7 @@ class Transport
     public function __construct(array $config)
     {
         $this->baseUrl = $config['base_url'];
-        $this->apiKey = $config['api_key'];
+        $this->ingestKey = $config['ingest_key'];
         $this->timeout = $config['timeout'];
         $this->debug = $config['debug'];
 
@@ -30,6 +30,9 @@ class Transport
 
     /**
      * Send an error event to the Keplog API
+     *
+     * This method fails silently to prevent SDK errors from affecting your app.
+     * Network errors, timeouts, and server issues are logged but don't throw.
      *
      * @param array $event
      * @return string|null Event ID if successful, null if failed
@@ -46,15 +49,17 @@ class Transport
             $url = $this->baseUrl . '/api/ingest/v1/events';
 
             if ($this->debug) {
-                error_log('[Keplog] Sending event: ' . json_encode($event));
+                error_log('[Keplog] Sending event (timeout: ' . $this->timeout . 's): ' . json_encode($event));
             }
 
             $response = $this->client->post($url, [
                 'headers' => [
                     'Content-Type' => 'application/json',
-                    'X-API-Key' => $this->apiKey,
+                    'X-Ingest-Key' => $this->ingestKey,
                 ],
                 'json' => $event,
+                'timeout' => $this->timeout,
+                'connect_timeout' => min($this->timeout, 5), // Connect timeout max 5s
             ]);
 
             if ($response->getStatusCode() === 202) {
@@ -67,13 +72,29 @@ class Transport
 
             return null;
         } catch (GuzzleException $e) {
+            // Handle timeout errors specifically
+            if ($e instanceof \GuzzleHttp\Exception\ConnectException ||
+                $e instanceof \GuzzleHttp\Exception\RequestException) {
+                if (strpos($e->getMessage(), 'timed out') !== false ||
+                    strpos($e->getMessage(), 'timeout') !== false) {
+                    error_log(
+                        '[Keplog] Timeout: Request to Keplog API exceeded ' . $this->timeout . 's. ' .
+                        'Check your network connection and server status.'
+                    );
+                    if ($this->debug) {
+                        error_log('[Keplog] Timeout details: ' . $e->getMessage());
+                    }
+                    return null;
+                }
+            }
+
             // Handle specific HTTP errors
             if ($e->hasResponse()) {
                 $statusCode = $e->getResponse()->getStatusCode();
                 $body = $e->getResponse()->getBody()->getContents();
 
                 if ($statusCode === 401) {
-                    error_log('[Keplog] Invalid API key - please check your configuration');
+                    error_log('[Keplog] Invalid Ingest Key - please check your configuration');
                 } elseif ($statusCode === 400) {
                     $errorData = json_decode($body, true);
                     error_log('[Keplog] Validation error: ' . ($errorData['error'] ?? 'Unknown error'));

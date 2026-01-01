@@ -30,7 +30,7 @@ class AppServiceProvider extends ServiceProvider
         // Register Keplog as a singleton
         $this->app->singleton('keplog', function ($app) {
             return new KeplogClient([
-                'api_key' => env('KEPLOG_API_KEY'),
+                'ingest_key' => env('KEPLOG_INGEST_KEY'),
                 'base_url' => env('KEPLOG_BASE_URL', 'http://localhost:8080'),
                 'environment' => env('APP_ENV', 'production'),
                 'release' => env('APP_VERSION'),

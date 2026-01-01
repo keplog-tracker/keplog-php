@@ -48,7 +48,7 @@ require 'vendor/autoload.php';
 use Keplog\KeplogClient;
 
 $keplog = new KeplogClient([
-    'api_key' => 'kep_your-api-key',
+    'ingest_key' => 'kep_ingest_your-ingest-key',
     'base_url' => 'http://localhost:8080',
     'environment' => 'production',
 ]);
@@ -77,7 +77,7 @@ public function register(): void
 {
     $this->app->singleton('keplog', function ($app) {
         return new \Keplog\KeplogClient([
-            'api_key' => env('KEPLOG_API_KEY'),
+            'ingest_key' => env('KEPLOG_INGEST_KEY'),
             'base_url' => env('KEPLOG_BASE_URL', 'http://localhost:8080'),
             'environment' => env('APP_ENV', 'production'),
             'release' => env('APP_VERSION'),
@@ -91,7 +91,7 @@ public function register(): void
 Add to `.env`:
 
 ```env
-KEPLOG_API_KEY=kep_your-api-key
+KEPLOG_INGEST_KEY=kep_ingest_your-ingest-key
 KEPLOG_BASE_URL=http://localhost:8080
 KEPLOG_ENABLED=true
 ```
@@ -179,7 +179,7 @@ public function boot(): void
 ```php
 $keplog = new KeplogClient([
     // Required
-    'api_key' => 'kep_your-api-key',  // Your Keplog API key
+    'ingest_key' => 'kep_ingest_your-ingest-key',  // Your Keplog API key
 
     // Optional
     'base_url' => 'http://localhost:8080',  // Keplog API endpoint
@@ -199,7 +199,7 @@ $keplog = new KeplogClient([
 ### Environment Variables (Laravel)
 
 ```env
-KEPLOG_API_KEY=kep_your-api-key-here
+KEPLOG_INGEST_KEY=kep_ingest_your-ingest-key-here
 KEPLOG_BASE_URL=http://localhost:8080
 KEPLOG_ENABLED=true
 KEPLOG_DEBUG=false

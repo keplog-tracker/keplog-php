@@ -11,7 +11,7 @@ use Keplog\Utils\Environment;
  * @example
  * ```php
  * $keplog = new KeplogClient([
- *     'api_key' => 'kep_your-api-key',
+ *     'ingest_key' => 'kep_ingest_your-ingest-key',
  *     'environment' => 'production',
  * ]);
  *
@@ -30,16 +30,22 @@ class KeplogClient
     private Transport $transport;
     private bool $enabled;
 
+    /**
+     * ⚠️ Recursion guard to prevent infinite loops
+     * If SDK throws error while capturing error, don't capture it again
+     */
+    private bool $isCapturing = false;
+
     public function __construct(array $config)
     {
         // Validate required config
-        if (empty($config['api_key'])) {
-            throw new \InvalidArgumentException('Keplog API key is required');
+        if (empty($config['ingest_key'])) {
+            throw new \InvalidArgumentException('Keplog Ingest Key is required');
         }
 
         // Set config with defaults
         $this->config = [
-            'api_key' => $config['api_key'],
+            'ingest_key' => $config['ingest_key'],
             'base_url' => $config['base_url'] ?? 'http://localhost:8080',
             'environment' => $config['environment'] ?? Environment::detect(),
             'release' => $config['release'] ?? null,
@@ -47,7 +53,7 @@ class KeplogClient
             'max_breadcrumbs' => $config['max_breadcrumbs'] ?? 100,
             'enabled' => $config['enabled'] ?? true,
             'debug' => $config['debug'] ?? false,
-            'timeout' => $config['timeout'] ?? 5,
+            'timeout' => min($config['timeout'] ?? 5, 10), // Max 10 seconds
             'before_send' => $config['before_send'] ?? null,
         ];
 
@@ -58,7 +64,7 @@ class KeplogClient
         $this->scope = new Scope();
         $this->transport = new Transport([
             'base_url' => $this->config['base_url'],
-            'api_key' => $this->config['api_key'],
+            'ingest_key' => $this->config['ingest_key'],
             'timeout' => $this->config['timeout'],
             'debug' => $this->config['debug'],
         ]);
@@ -85,6 +91,17 @@ class KeplogClient
             return null;
         }
 
+        // ⚠️ RECURSION GUARD: Prevent infinite loop
+        // If SDK is already capturing an error, don't capture again
+        if ($this->isCapturing) {
+            if ($this->config['debug']) {
+                error_log('[Keplog] Recursion detected: SDK error will not be captured to prevent infinite loop');
+            }
+            return null;
+        }
+
+        $this->isCapturing = true;
+
         try {
             // Serialize the exception
             $event = ErrorSerializer::serialize(
@@ -100,21 +117,38 @@ class KeplogClient
 
             // Apply beforeSend hook if provided
             if (is_callable($this->config['before_send'])) {
-                $event = call_user_func($this->config['before_send'], $event);
-                if ($event === null) {
-                    if ($this->config['debug']) {
-                        error_log('[Keplog] Event dropped by beforeSend hook');
+                try {
+                    $event = call_user_func($this->config['before_send'], $event);
+                    if ($event === null) {
+                        if ($this->config['debug']) {
+                            error_log('[Keplog] Event dropped by beforeSend hook');
+                        }
+                        return null;
                     }
+                } catch (\Throwable $e) {
+                    // beforeSend callback threw error - log but don't capture
+                    error_log('[Keplog] beforeSend callback threw error: ' . $e->getMessage());
                     return null;
                 }
             }
 
-            return $this->transport->send($event);
+            // Send the event
+            $eventId = $this->transport->send($event);
+
+            if ($this->config['debug'] && $eventId) {
+                error_log('[Keplog] Exception captured successfully: ' . $eventId);
+            }
+
+            return $eventId;
         } catch (\Throwable $e) {
+            // SDK internal error - log but don't try to capture
             if ($this->config['debug']) {
                 error_log('[Keplog] Failed to capture exception: ' . $e->getMessage());
             }
             return null;
+        } finally {
+            // Always reset guard
+            $this->isCapturing = false;
         }
     }
 
